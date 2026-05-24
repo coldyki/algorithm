@@ -1,8 +1,47 @@
+"""
+GraphTrip - 팀원4 여행 코스 최적화 모듈
+
+[실행 환경]
+- 개발 환경: Visual Studio Code
+- 실행 언어: Python 3.x
+- 실행 방법: 터미널에서 python main.py 또는 py main.py 실행
+
+[실행 시 필요한 라이브러리]
+- csv: Python 표준 라이브러리
+- heapq: Python 표준 라이브러리
+- json: Python 표준 라이브러리
+- 별도의 외부 패키지 설치는 필요하지 않음
+
+[Input 데이터]
+1. data/places.json
+   - 내용: 경주 주요 여행지 ID, 장소명, 키워드
+   - 출처: 팀에서 경주 주요 여행지를 기준으로 직접 구성한 프로토타입용 장소/키워드 데이터
+
+2. data/distances.csv
+   - 내용: 경주 주요 여행지 간 이동 거리
+   - 출처: 팀원4가 경주 주요 여행지 간 이동 관계를 기준으로 직접 구성한 프로토타입용 거리 데이터
+
+[사용 자료구조]
+- Graph: 장소를 정점, 장소 간 이동 거리를 간선 가중치로 표현
+- Priority Queue: Dijkstra 알고리즘에서 최단 거리 후보 관리
+- Dictionary: 장소 ID, 장소명, 키워드, 최단거리 테이블 조회
+- Set: 아직 방문하지 않은 추천 장소 관리
+- List: 추천 장소 목록과 최종 코스 저장
+
+[사용 알고리즘]
+- Dijkstra Algorithm
+- Floyd-Warshall Algorithm
+- Greedy Algorithm
+- Frequency Counting
+"""
+
 import csv
 import heapq
 import json
 
 
+# 자료구조: Dictionary
+# Input 데이터: data/places.json
 def load_places(file_path):
     """
     장소 정보를 JSON에서 읽어오는 함수
@@ -28,6 +67,8 @@ def load_places(file_path):
     return places
 
 
+# 자료구조: Graph
+# Input 데이터: data/distances.csv
 def load_distance_graph(file_path):
     """
     장소 간 거리 데이터를 CSV에서 읽어 그래프로 변환하는 함수
@@ -70,6 +111,49 @@ def validate_place_ids(graph, place_ids):
             raise ValueError(f"장소 ID {place_id}가 거리 그래프에 없습니다.")
 
 
+def remove_duplicates_keep_order(place_ids):
+    """
+    추천 장소 ID 목록에서 중복을 제거하되, 기존 순서는 유지한다.
+
+    자료구조: Set
+    - 이미 등장한 장소 ID를 빠르게 확인하기 위해 사용한다.
+    """
+
+    result = []
+    seen = set()
+
+    for place_id in place_ids:
+        if place_id not in seen:
+            result.append(place_id)
+            seen.add(place_id)
+
+    return result
+
+
+def build_original_route(start_place_id, recommended_place_ids):
+    """
+    기존 추천 순서 기준 경로를 만든다.
+
+    출발지가 추천 장소 목록에 이미 있으면 그대로 사용하고,
+    출발지가 추천 장소 목록에 없으면 맨 앞에 출발지를 추가한다.
+    """
+
+    unique_recommended = remove_duplicates_keep_order(recommended_place_ids)
+
+    if not unique_recommended:
+        return [start_place_id]
+
+    if unique_recommended[0] == start_place_id:
+        return unique_recommended
+
+    if start_place_id in unique_recommended:
+        unique_recommended.remove(start_place_id)
+
+    return [start_place_id] + unique_recommended
+
+
+# 최단경로탐색: Dijkstra Algorithm
+# 자료구조: Priority Queue
 def dijkstra(graph, start):
     """
     알고리즘: Dijkstra Algorithm
@@ -109,6 +193,8 @@ def dijkstra(graph, start):
     return distances
 
 
+# 모든 쌍 최단경로탐색: Floyd-Warshall Algorithm
+# 자료구조: Dictionary
 def floyd_warshall(graph):
     """
     알고리즘: Floyd-Warshall Algorithm
@@ -144,6 +230,9 @@ def floyd_warshall(graph):
     return distances
 
 
+# 코스 생성: Greedy Algorithm
+# 기반 최단거리탐색: Dijkstra Algorithm
+# 자료구조: Set
 def create_optimized_route_by_dijkstra(graph, start_place_id, recommended_place_ids):
     """
     알고리즘: Greedy Algorithm
@@ -162,7 +251,7 @@ def create_optimized_route_by_dijkstra(graph, start_place_id, recommended_place_
 
     # 자료구조: Set
     # 아직 방문하지 않은 추천 장소를 관리한다.
-    unvisited = set(recommended_place_ids)
+    unvisited = set(remove_duplicates_keep_order(recommended_place_ids))
 
     if start_place_id in unvisited:
         unvisited.remove(start_place_id)
@@ -193,6 +282,9 @@ def create_optimized_route_by_dijkstra(graph, start_place_id, recommended_place_
     return route, total_distance
 
 
+# 코스 생성: Greedy Algorithm
+# 기반 최단거리탐색: Floyd-Warshall Algorithm
+# 자료구조: Set
 def create_optimized_route_by_floyd(all_pairs_distances, start_place_id, recommended_place_ids):
     """
     알고리즘: Greedy Algorithm
@@ -208,7 +300,7 @@ def create_optimized_route_by_floyd(all_pairs_distances, start_place_id, recomme
 
     # 자료구조: Set
     # 아직 방문하지 않은 추천 장소를 관리한다.
-    unvisited = set(recommended_place_ids)
+    unvisited = set(remove_duplicates_keep_order(recommended_place_ids))
 
     if start_place_id in unvisited:
         unvisited.remove(start_place_id)
@@ -241,6 +333,7 @@ def create_optimized_route_by_floyd(all_pairs_distances, start_place_id, recomme
     return route, total_distance
 
 
+# 경로 거리 계산: Dijkstra Algorithm
 def calculate_route_distance_by_dijkstra(graph, route):
     """
     입력된 방문 순서대로 이동했을 때의 총 이동 거리를 계산한다.
@@ -270,6 +363,7 @@ def calculate_route_distance_by_dijkstra(graph, route):
     return total_distance
 
 
+# 경로 거리 계산: Floyd-Warshall Algorithm
 def calculate_route_distance_by_floyd(all_pairs_distances, route):
     """
     Floyd-Warshall 결과를 이용하여 입력된 방문 순서의 총 이동 거리를 계산한다.
@@ -314,6 +408,9 @@ def calculate_improvement(original_distance, optimized_distance):
 def convert_route_to_names(route, places):
     """
     장소 ID로 구성된 경로를 장소 이름 목록으로 변환한다.
+
+    자료구조: Dictionary
+    - place_id를 이용해 장소명을 조회한다.
     """
 
     route_names = []
@@ -327,6 +424,7 @@ def convert_route_to_names(route, places):
     return route_names
 
 
+# 구간별 이동거리 계산: Dijkstra Algorithm
 def get_route_segments_by_dijkstra(graph, route):
     """
     Dijkstra 알고리즘을 사용해 경로의 구간별 이동 거리를 구한다.
@@ -349,6 +447,7 @@ def get_route_segments_by_dijkstra(graph, route):
     return segments
 
 
+# 구간별 이동거리 계산: Floyd-Warshall Algorithm
 def get_route_segments_by_floyd(all_pairs_distances, route):
     """
     Floyd-Warshall 결과를 사용해 경로의 구간별 이동 거리를 구한다.
@@ -392,6 +491,8 @@ def convert_segments_to_dicts(segments, places):
     return segment_dicts
 
 
+# 키워드 분석: Frequency Counting
+# 자료구조: Dictionary
 def get_top_keywords(route, places, top_n=5):
     """
     최적화된 코스에 포함된 장소들의 키워드를 집계한다.
@@ -474,7 +575,7 @@ def print_segments(segments, places):
 def print_route_result(
     places,
     start_place_id,
-    recommended_place_ids,
+    original_route,
     original_distance,
     dijkstra_route,
     dijkstra_distance,
@@ -487,7 +588,7 @@ def print_route_result(
     콘솔 테스트용 코스 최적화 결과 출력 함수
     """
 
-    recommended_names = convert_route_to_names(recommended_place_ids, places)
+    original_names = convert_route_to_names(original_route, places)
     dijkstra_route_names = convert_route_to_names(dijkstra_route, places)
     floyd_route_names = convert_route_to_names(floyd_route, places)
 
@@ -511,7 +612,7 @@ def print_route_result(
     print(f"출발지: {places[start_place_id]['name']}")
 
     print("\n[기존 추천 순서]")
-    print(" → ".join(recommended_names))
+    print(" → ".join(original_names))
     print(f"기존 추천 순서 총 이동 거리: {original_distance:.2f}km")
 
     print("\n[Dijkstra + Greedy 결과]")
@@ -568,12 +669,14 @@ def optimize_travel_route(
     places = load_places(places_file)
     graph = load_distance_graph(distances_file)
 
-    validate_place_ids(graph, [start_place_id])
-    validate_place_ids(graph, recommended_place_ids)
+    recommended_place_ids = remove_duplicates_keep_order(recommended_place_ids)
+    original_route = build_original_route(start_place_id, recommended_place_ids)
+
+    validate_place_ids(graph, original_route)
 
     original_distance = calculate_route_distance_by_dijkstra(
         graph,
-        recommended_place_ids
+        original_route
     )
 
     if method == "dijkstra":
@@ -626,6 +729,11 @@ def optimize_travel_route(
             recommended_place_ids,
             places
         ),
+        "original_route_ids": original_route,
+        "original_route_names": convert_route_to_names(
+            original_route,
+            places
+        ),
         "original_distance_km": round(original_distance, 2),
         "optimized_route_ids": optimized_route,
         "optimized_route_names": convert_route_to_names(
@@ -657,6 +765,9 @@ def print_optimized_result_dict(result):
 
     print("\n[입력 추천 장소]")
     print(" → ".join(result["input_recommended_place_names"]))
+
+    print("\n[기존 추천 순서]")
+    print(" → ".join(result["original_route_names"]))
     print(f"기존 추천 순서 총 이동 거리: {result['original_distance_km']:.2f}km")
 
     print("\n[최적화된 여행 코스]")

@@ -1,3 +1,32 @@
+"""
+GraphTrip - 팀원4 여행 코스 최적화 실행 파일
+
+[실행 환경]
+- 개발 환경: Visual Studio Code
+- 실행 언어: Python 3.x
+- 실행 방법: 터미널에서 python main.py 또는 py main.py 실행
+
+[실행 시 필요한 라이브러리]
+- 본 모듈은 Python 표준 라이브러리만 사용한다.
+- 별도의 외부 패키지 설치는 필요하지 않다.
+
+[Input 데이터]
+1. data/places.json
+   - 내용: 경주 주요 여행지 ID, 장소명, 키워드
+   - 출처: 팀에서 경주 주요 여행지를 기준으로 직접 구성한 프로토타입용 장소/키워드 데이터
+
+2. data/distances.csv
+   - 내용: 경주 주요 여행지 간 이동 거리
+   - 출처: 팀원4가 경주 주요 여행지 간 이동 관계를 기준으로 직접 구성한 프로토타입용 거리 데이터
+
+[담당 기능]
+- 장소 거리 데이터 정리
+- 최단경로 알고리즘 구현
+- 추천 장소 기반 여행 코스 생성
+- 기존 추천 순서와 최적화된 코스 비교
+- 팀원들과 통합 가능한 optimize_travel_route() 함수 테스트
+"""
+
 from route_optimizer import (
     load_places,
     load_distance_graph,
@@ -9,7 +38,8 @@ from route_optimizer import (
     get_route_segments_by_floyd,
     print_route_result,
     optimize_travel_route,
-    print_optimized_result_dict
+    print_optimized_result_dict,
+    build_original_route
 )
 
 
@@ -25,20 +55,26 @@ def run_test_case(test_case, places, graph, all_pairs_distances):
 
     print(f"\n\n사용자 테스트 케이스: {user_name}")
 
-    # 기존 추천 순서의 총 이동 거리 계산
-    original_distance = calculate_route_distance_by_dijkstra(
-        graph,
+    # 기존 추천 순서 생성
+    original_route = build_original_route(
+        start_place_id,
         recommended_place_ids
     )
 
-    # Dijkstra + Greedy 방식 코스 생성
+    # 기존 추천 순서의 총 이동 거리 계산
+    original_distance = calculate_route_distance_by_dijkstra(
+        graph,
+        original_route
+    )
+
+    # 알고리즘: Dijkstra Algorithm + Greedy Algorithm
     dijkstra_route, dijkstra_distance = create_optimized_route_by_dijkstra(
         graph,
         start_place_id,
         recommended_place_ids
     )
 
-    # Floyd-Warshall + Greedy 방식 코스 생성
+    # 알고리즘: Floyd-Warshall Algorithm + Greedy Algorithm
     floyd_route, floyd_distance = create_optimized_route_by_floyd(
         all_pairs_distances,
         start_place_id,
@@ -60,7 +96,7 @@ def run_test_case(test_case, places, graph, all_pairs_distances):
     print_route_result(
         places=places,
         start_place_id=start_place_id,
-        recommended_place_ids=recommended_place_ids,
+        original_route=original_route,
         original_distance=original_distance,
         dijkstra_route=dijkstra_route,
         dijkstra_distance=dijkstra_distance,
@@ -99,7 +135,7 @@ def run_integration_function_demo():
 
 def main():
     """
-    GraphTrip 팀원4 여행 코스 최적화 실행 파일
+    팀원4 개인 모듈 실행 함수
 
     현재 목표:
     - 팀원들과 기능을 합치기 전, 팀원4 개인 모듈을 독립 실행 가능하게 완성한다.
