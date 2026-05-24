@@ -105,14 +105,6 @@ def main():
     - 팀원들과 기능을 합치기 전, 팀원4 개인 모듈을 독립 실행 가능하게 완성한다.
     - 팀원1, 2, 3의 추천 결과가 아직 연결되지 않았으므로 더미 추천 장소 ID를 사용한다.
     - 추후 팀원 추천 결과가 연결되면 recommended_place_ids만 교체하면 된다.
-
-    담당 기능:
-    - 추천된 경주 여행 장소들을 입력받는다.
-    - 장소 간 거리 데이터를 Graph로 구성한다.
-    - Dijkstra Algorithm과 Greedy Algorithm을 사용하여 효율적인 여행 코스를 생성한다.
-    - Floyd-Warshall Algorithm을 사용하여 모든 장소 쌍 최단거리 테이블을 계산한다.
-    - 기존 추천 순서와 최적화된 코스의 총 이동 거리를 비교한다.
-    - 팀원들과 통합 가능한 optimize_travel_route() 함수를 제공한다.
     """
 
     places_file = "data/places.json"
@@ -126,7 +118,6 @@ def main():
     all_pairs_distances = floyd_warshall(graph)
 
     # 팀원1, 2, 3의 추천 결과를 가정한 더미 테스트 케이스
-    # 추후 실제 추천 시스템과 연결하면 이 리스트 대신 추천 결과를 넘겨받으면 된다.
     test_cases = [
         {
             "user_name": "사용자 A - 감성/데이트 추천",
@@ -142,6 +133,16 @@ def main():
             "user_name": "사용자 C - 힐링/자연 추천",
             "start_place_id": 7,
             "recommended_place_ids": [7, 2, 4, 5, 6]
+        },
+        {
+            "user_name": "사용자 D - 출발지가 추천 목록에 없는 경우",
+            "start_place_id": 1,
+            "recommended_place_ids": [2, 3, 8, 10]
+        },
+        {
+            "user_name": "사용자 E - 추천 장소가 2개인 경우",
+            "start_place_id": 1,
+            "recommended_place_ids": [1, 10]
         }
     ]
 
