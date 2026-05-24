@@ -20,7 +20,7 @@ def main():
 
     # Input 데이터
     # 경주 주요 여행지 데이터와 장소 간 거리 데이터 사용
-    places_file = "data/places.csv"
+    places_file = "data/places.json"
     distances_file = "data/distances.csv"
 
     places = load_places(places_file)

@@ -1,10 +1,10 @@
 import csv
 import heapq
-
+import json
 
 def load_places(file_path):
     """
-    장소 정보를 CSV에서 읽어오는 함수
+    장소 정보를 JSON에서 읽어오는 함수
 
     자료구조: Dictionary
     - place_id를 key로 사용한다.
@@ -13,18 +13,16 @@ def load_places(file_path):
 
     places = {}
 
-    with open(file_path, "r", encoding="utf-8-sig") as file:
-        reader = csv.DictReader(file)
+    with open(file_path, "r", encoding="utf-8") as file:
+        place_list = json.load(file)
 
-        for row in reader:
-            place_id = int(row["place_id"])
-            place_name = row["place_name"]
-            keywords = row["keywords"].split("|")
+    for place in place_list:
+        place_id = int(place["id"])
 
-            places[place_id] = {
-                "name": place_name,
-                "keywords": keywords
-            }
+        places[place_id] = {
+            "name": place["name"],
+            "keywords": place["keywords"]
+        }
 
     return places
 
