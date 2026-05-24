@@ -5,10 +5,11 @@ from route_optimizer import (
     create_optimized_route_by_dijkstra,
     create_optimized_route_by_floyd,
     calculate_route_distance_by_dijkstra,
-    calculate_route_distance_by_floyd,
     get_route_segments_by_dijkstra,
     get_route_segments_by_floyd,
-    print_route_result
+    print_route_result,
+    optimize_travel_route,
+    print_optimized_result_dict
 )
 
 
@@ -45,10 +46,17 @@ def run_test_case(test_case, places, graph, all_pairs_distances):
     )
 
     # 구간별 이동 거리 계산
-    dijkstra_segments = get_route_segments_by_dijkstra(graph, dijkstra_route)
-    floyd_segments = get_route_segments_by_floyd(all_pairs_distances, floyd_route)
+    dijkstra_segments = get_route_segments_by_dijkstra(
+        graph,
+        dijkstra_route
+    )
 
-    # 출력
+    floyd_segments = get_route_segments_by_floyd(
+        all_pairs_distances,
+        floyd_route
+    )
+
+    # 테스트용 출력
     print_route_result(
         places=places,
         start_place_id=start_place_id,
@@ -61,6 +69,32 @@ def run_test_case(test_case, places, graph, all_pairs_distances):
         dijkstra_segments=dijkstra_segments,
         floyd_segments=floyd_segments
     )
+
+
+def run_integration_function_demo():
+    """
+    팀원들과 통합할 때 사용할 optimize_travel_route() 함수 테스트
+
+    팀원1, 2, 3이 나중에 아래 두 값만 넘겨주면 된다.
+    - start_place_id
+    - recommended_place_ids
+    """
+
+    print("\n\n")
+    print("#" * 70)
+    print("[팀원 통합용 함수 테스트]")
+    print("#" * 70)
+
+    start_place_id = 1
+    recommended_place_ids = [1, 2, 3, 8, 10]
+
+    result = optimize_travel_route(
+        start_place_id=start_place_id,
+        recommended_place_ids=recommended_place_ids,
+        method="floyd"
+    )
+
+    print_optimized_result_dict(result)
 
 
 def main():
@@ -78,6 +112,7 @@ def main():
     - Dijkstra Algorithm과 Greedy Algorithm을 사용하여 효율적인 여행 코스를 생성한다.
     - Floyd-Warshall Algorithm을 사용하여 모든 장소 쌍 최단거리 테이블을 계산한다.
     - 기존 추천 순서와 최적화된 코스의 총 이동 거리를 비교한다.
+    - 팀원들과 통합 가능한 optimize_travel_route() 함수를 제공한다.
     """
 
     places_file = "data/places.json"
@@ -112,6 +147,9 @@ def main():
 
     for test_case in test_cases:
         run_test_case(test_case, places, graph, all_pairs_distances)
+
+    # 팀원들과 합칠 때 사용할 최종 함수 테스트
+    run_integration_function_demo()
 
 
 if __name__ == "__main__":

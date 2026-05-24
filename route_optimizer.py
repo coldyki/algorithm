@@ -53,7 +53,7 @@ def load_distance_graph(file_path):
             if to_place not in graph:
                 graph[to_place] = {}
 
-            # 경로는 양방향 이동이 가능하다고 가정한다.
+            # 경주 여행지 간 이동은 양방향 이동이 가능하다고 가정한다.
             graph[from_place][to_place] = distance
             graph[to_place][from_place] = distance
 
@@ -179,6 +179,8 @@ def create_optimized_route_by_dijkstra(graph, start_place_id, recommended_place_
         if not reachable_places:
             raise ValueError("방문 가능한 추천 장소가 없습니다. 거리 데이터를 확인하세요.")
 
+        # Greedy Algorithm:
+        # 현재 위치에서 가장 가까운 미방문 장소를 다음 방문지로 선택한다.
         next_place = min(reachable_places, key=reachable_places.get)
         next_distance = reachable_places[next_place]
 
@@ -225,6 +227,8 @@ def create_optimized_route_by_floyd(all_pairs_distances, start_place_id, recomme
         if not reachable_places:
             raise ValueError("방문 가능한 추천 장소가 없습니다. 거리 데이터를 확인하세요.")
 
+        # Greedy Algorithm:
+        # 현재 위치에서 가장 가까운 미방문 장소를 다음 방문지로 선택한다.
         next_place = min(reachable_places, key=reachable_places.get)
         next_distance = reachable_places[next_place]
 
@@ -335,8 +339,11 @@ def get_route_segments_by_dijkstra(graph, route):
         end = route[i + 1]
 
         distances = dijkstra(graph, start)
-        distance = distances[end]
 
+        if end not in distances or distances[end] == float("inf"):
+            raise ValueError(f"{start}에서 {end}까지 이동 가능한 경로가 없습니다.")
+
+        distance = distances[end]
         segments.append((start, end, distance))
 
     return segments
@@ -352,11 +359,37 @@ def get_route_segments_by_floyd(all_pairs_distances, route):
     for i in range(len(route) - 1):
         start = route[i]
         end = route[i + 1]
-        distance = all_pairs_distances[start][end]
 
+        if (
+            start not in all_pairs_distances
+            or end not in all_pairs_distances[start]
+            or all_pairs_distances[start][end] == float("inf")
+        ):
+            raise ValueError(f"{start}에서 {end}까지 이동 가능한 경로가 없습니다.")
+
+        distance = all_pairs_distances[start][end]
         segments.append((start, end, distance))
 
     return segments
+
+
+def convert_segments_to_dicts(segments, places):
+    """
+    구간별 이동 거리 튜플을 팀원들이 활용하기 쉬운 Dictionary 리스트로 변환한다.
+    """
+
+    segment_dicts = []
+
+    for start, end, distance in segments:
+        segment_dicts.append({
+            "from_place_id": start,
+            "from_place_name": places[start]["name"],
+            "to_place_id": end,
+            "to_place_name": places[end]["name"],
+            "distance_km": round(distance, 2)
+        })
+
+    return segment_dicts
 
 
 def get_top_keywords(route, places, top_n=5):
@@ -387,6 +420,22 @@ def get_top_keywords(route, places, top_n=5):
     )
 
     return sorted_keywords[:top_n]
+
+
+def convert_keywords_to_dicts(top_keywords):
+    """
+    키워드 빈도 튜플을 Dictionary 리스트로 변환한다.
+    """
+
+    keyword_dicts = []
+
+    for keyword, count in top_keywords:
+        keyword_dicts.append({
+            "keyword": keyword,
+            "count": count
+        })
+
+    return keyword_dicts
 
 
 def infer_course_type(top_keywords):
@@ -435,7 +484,7 @@ def print_route_result(
     floyd_segments
 ):
     """
-    코스 최적화 결과를 출력하는 함수
+    콘솔 테스트용 코스 최적화 결과 출력 함수
     """
 
     recommended_names = convert_route_to_names(recommended_place_ids, places)
@@ -490,5 +539,155 @@ def print_route_result(
 
     print(f"\n[코스 유형]")
     print(course_type)
+
+    print("=" * 70)
+
+
+def optimize_travel_route(
+    start_place_id,
+    recommended_place_ids,
+    places_file="data/places.json",
+    distances_file="data/distances.csv",
+    method="floyd"
+):
+    """
+    팀원들과 통합할 때 사용할 최종 연결용 함수
+
+    입력:
+    - start_place_id: 출발 장소 ID
+    - recommended_place_ids: 팀원1, 2, 3의 추천 결과로 나온 장소 ID 리스트
+    - places_file: 장소 정보 JSON 파일 경로
+    - distances_file: 장소 간 거리 CSV 파일 경로
+    - method: "floyd" 또는 "dijkstra"
+
+    출력:
+    - 코스 최적화 결과를 Dictionary 형태로 반환한다.
+    - 나중에 UI, 발표 출력, 다른 팀원 코드에서 쉽게 사용할 수 있다.
+    """
+
+    places = load_places(places_file)
+    graph = load_distance_graph(distances_file)
+
+    validate_place_ids(graph, [start_place_id])
+    validate_place_ids(graph, recommended_place_ids)
+
+    original_distance = calculate_route_distance_by_dijkstra(
+        graph,
+        recommended_place_ids
+    )
+
+    if method == "dijkstra":
+        optimized_route, optimized_distance = create_optimized_route_by_dijkstra(
+            graph,
+            start_place_id,
+            recommended_place_ids
+        )
+
+        route_segments = get_route_segments_by_dijkstra(
+            graph,
+            optimized_route
+        )
+
+        algorithm_name = "Dijkstra + Greedy"
+
+    elif method == "floyd":
+        all_pairs_distances = floyd_warshall(graph)
+
+        optimized_route, optimized_distance = create_optimized_route_by_floyd(
+            all_pairs_distances,
+            start_place_id,
+            recommended_place_ids
+        )
+
+        route_segments = get_route_segments_by_floyd(
+            all_pairs_distances,
+            optimized_route
+        )
+
+        algorithm_name = "Floyd-Warshall + Greedy"
+
+    else:
+        raise ValueError("method는 'dijkstra' 또는 'floyd'만 사용할 수 있습니다.")
+
+    saved_distance, improvement_rate = calculate_improvement(
+        original_distance,
+        optimized_distance
+    )
+
+    top_keywords = get_top_keywords(optimized_route, places)
+    course_type = infer_course_type(top_keywords)
+
+    result = {
+        "algorithm": algorithm_name,
+        "start_place_id": start_place_id,
+        "start_place_name": places[start_place_id]["name"],
+        "input_recommended_place_ids": recommended_place_ids,
+        "input_recommended_place_names": convert_route_to_names(
+            recommended_place_ids,
+            places
+        ),
+        "original_distance_km": round(original_distance, 2),
+        "optimized_route_ids": optimized_route,
+        "optimized_route_names": convert_route_to_names(
+            optimized_route,
+            places
+        ),
+        "optimized_distance_km": round(optimized_distance, 2),
+        "saved_distance_km": round(saved_distance, 2),
+        "improvement_rate_percent": round(improvement_rate, 2),
+        "segments": convert_segments_to_dicts(route_segments, places),
+        "top_keywords": convert_keywords_to_dicts(top_keywords),
+        "course_type": course_type
+    }
+
+    return result
+
+
+def print_optimized_result_dict(result):
+    """
+    optimize_travel_route()의 반환 결과를 콘솔에 보기 좋게 출력하는 함수
+    """
+
+    print("=" * 70)
+    print("[GraphTrip 통합용 최적 여행 코스 결과]")
+    print("=" * 70)
+
+    print(f"사용 알고리즘: {result['algorithm']}")
+    print(f"출발지: {result['start_place_name']}")
+
+    print("\n[입력 추천 장소]")
+    print(" → ".join(result["input_recommended_place_names"]))
+    print(f"기존 추천 순서 총 이동 거리: {result['original_distance_km']:.2f}km")
+
+    print("\n[최적화된 여행 코스]")
+    print(" → ".join(result["optimized_route_names"]))
+    print(f"최적화 후 총 이동 거리: {result['optimized_distance_km']:.2f}km")
+
+    print("\n[구간별 이동 거리]")
+    for segment in result["segments"]:
+        print(
+            f"- {segment['from_place_name']} → "
+            f"{segment['to_place_name']}: "
+            f"{segment['distance_km']:.2f}km"
+        )
+
+    print("\n[거리 개선 결과]")
+    print(f"절약 거리: {result['saved_distance_km']:.2f}km")
+    print(f"개선율: {result['improvement_rate_percent']:.2f}%")
+
+    print("\n[코스 주요 키워드]")
+    if result["top_keywords"]:
+        keyword_text = ", ".join(
+            [
+                f"{item['keyword']}({item['count']})"
+                for item in result["top_keywords"]
+            ]
+        )
+        print(keyword_text)
+    else:
+        print("키워드 없음")
+
+    print(f"\n[코스 유형]")
+    print(result["course_type"])
 
     print("=" * 70)
