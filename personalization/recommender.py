@@ -201,3 +201,34 @@ def recommend_places(
     # score 내림차순 정렬 후 top_k 반환
     result.sort(key=lambda x: x["score"], reverse=True)
     return result[:top_k]
+
+# -------------------------------------------------------
+# 역할4 연결 함수
+# -------------------------------------------------------
+def get_place_ids_for_route(
+    liked_places: list[int],
+    cf_places: list[int] = None,
+    top_k: int = 5,
+    walk_seed: int = None,
+) -> list[int]:
+    """
+    역할4(optimize_travel_route)에 바로 넘길 수 있는
+    추천 장소 ID 리스트만 반환하는 편의 함수.
+
+    사용 예:
+        from personalization.recommender import get_place_ids_for_route
+        from route_optimizer import optimize_travel_route
+
+        place_ids = get_place_ids_for_route(liked_places=[1, 10])
+        result = optimize_travel_route(
+            start_place_id=1,
+            recommended_place_ids=place_ids
+        )
+    """
+    recommendations = recommend_places(
+        liked_places=liked_places,
+        cf_places=cf_places,
+        top_k=top_k,
+        walk_seed=walk_seed,
+    )
+    return [r["place_id"] for r in recommendations]
