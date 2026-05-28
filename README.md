@@ -61,7 +61,7 @@ Why
 자료구조: Priority Queue, Graph  
 알고리즘: Dijkstra Algorithm, Greedy Algorithm
 
-###  주요 구현 내용 및 기술적 의도
+###  팀원2 - 주요 구현 내용 및 기술적 의도
 
 1. **Trie 자료구조 기반 접두사(Prefix) 검색 구현**
    - 여행지 키워드를 글자 단위로 분기하여 공통 앞부분(Prefix)을 공유하는 트리 구조 구축
