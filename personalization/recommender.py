@@ -75,7 +75,6 @@ def recommend_places(
     top_k: int = 5,
     graph_threshold: float = 0.2,
     walk_steps: int = None,
-    walk_seed: int = None,
 ) -> list[dict]:
     """
     Personalized PageRank 기반 장소 추천을 수행한다.
@@ -97,8 +96,6 @@ def recommend_places(
         graph_threshold:  장소 그래프 생성 시 최소 유사도. 기본값 0.2.
         walk_steps:       Random Walk 스텝 수.
                           None이면 max(1000, 장소 수 × 100)으로 자동 결정.
-        walk_seed:        랜덤 시드. 발표/테스트 시 고정값(예: 42)을 권장한다.
-                          None이면 매번 다른 결과를 반환한다.
 
     Returns:
         추천 장소 리스트 (score 내림차순 정렬, 최대 top_k개).
@@ -153,7 +150,6 @@ def recommend_places(
         graph=graph,
         start_nodes=seed_places,
         steps=walk_steps,
-        seed=walk_seed,
     )
 
     # 3단계: PPR 점수 정규화 (이미 좋아요한 장소 제외)
@@ -202,33 +198,41 @@ def recommend_places(
     result.sort(key=lambda x: x["score"], reverse=True)
     return result[:top_k]
 
+
 # -------------------------------------------------------
-# 역할4 연결 함수
+# 역할4 연동용 진입점
 # -------------------------------------------------------
 def get_place_ids_for_route(
-    liked_places: list[int],
-    cf_places: list[int] = None,
-    top_k: int = 5,
-    walk_seed: int = None,
+    recommendations: list[dict],
 ) -> list[int]:
     """
-    역할4(optimize_travel_route)에 바로 넘길 수 있는
-    추천 장소 ID 리스트만 반환하는 편의 함수.
+    recommend_places()의 결과를 받아
+    역할4(optimize_travel_route)에 넘길 place_id 리스트만 추출한다.
 
-    사용 예:
-        from personalization.recommender import get_place_ids_for_route
-        from route_optimizer import optimize_travel_route
+    recommend_places()를 내부에서 새로 호출하지 않기 때문에
+    추천 상세 정보(장소명, 점수, 추천 이유, 키워드 등)를 그대로 유지하면서
+    역할4에 필요한 ID 리스트만 추가로 뽑을 수 있다.
 
-        place_ids = get_place_ids_for_route(liked_places=[1, 10])
+    실제 서비스 흐름:
+        recommendations = recommend_places(
+            liked_places=user_liked_places,
+            cf_places=cf_result
+        )
+        # 상세 정보 출력 (추천 이유, 키워드, 점수 등)
+        for r in recommendations:
+            print(r["place_name"], r["reason"])
+
+        # 역할4에 ID 리스트 전달
+        place_ids = get_place_ids_for_route(recommendations)
         result = optimize_travel_route(
-            start_place_id=1,
+            start_place_id=user_liked_places[0],
             recommended_place_ids=place_ids
         )
+
+    Args:
+        recommendations: recommend_places()의 반환값.
+
+    Returns:
+        추천 장소 ID 리스트. 예) [2, 8, 3, 6, 7]
     """
-    recommendations = recommend_places(
-        liked_places=liked_places,
-        cf_places=cf_places,
-        top_k=top_k,
-        walk_seed=walk_seed,
-    )
     return [r["place_id"] for r in recommendations]

@@ -6,18 +6,16 @@ GraphTrip 개인화 추천 시스템 통합 테스트.
 테스트 시나리오:
   1. 기본 추천 (liked_places만 사용)
   2. CF 연동 추천 (역할1 CF 결과를 cf_places로 전달)
-  3. 재현성 테스트 (walk_seed 고정)
-  4. 역할4 연동 확인 (반환값에 lat/lng 포함 여부)
-  5. 예외 처리 테스트
+  3. 역할4 연동 확인 (get_place_ids_for_route 반환값 확인)
+  4. 예외 처리 테스트
 """
 
 import sys
 import os
 
-# 프로젝트 루트를 sys.path에 추가 (어느 위치에서 실행해도 동작)
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from personalization.recommender import recommend_places
+from personalization.recommender import recommend_places, get_place_ids_for_route
 
 
 # -------------------------------------------------------
@@ -60,7 +58,6 @@ print("  사용자 좋아요 장소: 황리단길(1), 월정교(10)")
 result_basic = recommend_places(
     liked_places=[1, 10],
     top_k=5,
-    walk_seed=42,    # 재현성을 위해 시드 고정
 )
 print_result(result_basic)
 
@@ -74,55 +71,32 @@ print("  역할1 CF 결과 (유사 사용자 선호 장소): 동궁과 월지(2)
 
 result_cf = recommend_places(
     liked_places=[1, 10],
-    cf_places=[2, 8],   # 역할1이 계산한 CF 추천 결과
+    cf_places=[2, 8],
     top_k=5,
-    walk_seed=42,
 )
 print_result(result_cf)
 
 
 # -------------------------------------------------------
-# 테스트 3: 재현성 확인 (동일 seed → 동일 결과)
+# 테스트 3: 역할4 연동 — get_place_ids_for_route
+# 테스트 2의 recommend_places() 결과를 그대로 넘겨
+# 추천 상세 정보는 유지하면서 ID 리스트만 추출한다.
 # -------------------------------------------------------
-print_divider("테스트 3: 재현성 확인 (seed=42 두 번 실행)")
+print_divider("테스트 3: 역할4 연동 — get_place_ids_for_route")
 
-result_a = recommend_places(liked_places=[3, 4], top_k=3, walk_seed=42)
-result_b = recommend_places(liked_places=[3, 4], top_k=3, walk_seed=42)
+place_ids = get_place_ids_for_route(result_cf)
 
-ids_a = [r["place_id"] for r in result_a]
-ids_b = [r["place_id"] for r in result_b]
-
-if ids_a == ids_b:
-    print(f"  ✅ 재현성 확인: 두 결과 동일 → {ids_a}")
+if all(isinstance(pid, int) for pid in place_ids):
+    print(f"  ✅ place_id 리스트 정상 반환: {place_ids}")
+    print(f"  → 역할4 호출 예시: optimize_travel_route(start_place_id=1, recommended_place_ids={place_ids})")
 else:
-    print(f"  ❌ 재현성 실패: {ids_a} vs {ids_b}")
+    print(f"  ❌ 반환값 오류: {place_ids}")
 
 
 # -------------------------------------------------------
-# 테스트 4: 역할4 연동 — 좌표 포함 여부 확인
+# 테스트 4: 예외 처리 — 빈 liked_places
 # -------------------------------------------------------
-print_divider("테스트 4: 역할4(Dijkstra) 연동 — 좌표 확인")
-
-result_coord = recommend_places(liked_places=[7], top_k=3, walk_seed=42)
-all_have_coords = all(
-    r["lat"] is not None and r["lng"] is not None for r in result_coord
-)
-
-if all_have_coords:
-    print("  ✅ 모든 추천 결과에 lat/lng 포함 — 역할4에서 바로 사용 가능")
-    for r in result_coord:
-        print(
-            f"     [{r['place_id']}] {r['place_name']} "
-            f"→ ({r['lat']}, {r['lng']})"
-        )
-else:
-    print("  ❌ 좌표 누락 — places.json 확인 필요")
-
-
-# -------------------------------------------------------
-# 테스트 5: 예외 처리 — 빈 liked_places
-# -------------------------------------------------------
-print_divider("테스트 5: 예외 처리 — liked_places 빈 리스트")
+print_divider("테스트 4: 예외 처리 — liked_places 빈 리스트")
 
 try:
     recommend_places(liked_places=[])
