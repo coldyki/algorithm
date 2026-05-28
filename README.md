@@ -43,19 +43,19 @@ Why
 자료구조: Graph, HashMap  
 알고리즘: Collaborative Filtering, Jaccard Similarity
 
-2. 팀원2  
+2. 심찬기  
 역할: 키워드 분석 시스템 개발  
 담당 기능: 리뷰 키워드 저장 및 키워드 기반 장소 분류 기능 구현  
 자료구조: HashMap, Inverted Index  
 알고리즘: Topic-Sensitive Ranking
 
-3. 팀원3  
+3. 최정현
 역할: 개인화 추천 시스템 개발  
 담당 기능: 사용자 취향 기반 Personalized 추천 기능 구현  
 자료구조: Weighted Graph, Dictionary  
 알고리즘: Personalized PageRank
 
-4. 팀원4  
+4. 박종빈
 역할: 여행 코스 최적화 개발  
 담당 기능: 추천 장소들을 최적 이동 경로로 구성하는 기능 구현  
 자료구조: Priority Queue, Graph  
