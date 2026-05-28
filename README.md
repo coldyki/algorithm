@@ -93,12 +93,12 @@ algorithm/
 * Inverted Index
 * Topic-Sensitive Ranking
 
-## 3. 최정현
+## 3. 박종빈
 
 * Personalized 추천 시스템 구현
 * Personalized PageRank
 
-## 4. 박종빈
+## 4. 최정현
 
 * 여행 코스 최적화 구현
 * Dijkstra Algorithm
