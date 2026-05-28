@@ -1,62 +1,201 @@
 # algorithm
 
-[기말 프로젝트 주제 정리]
+# GraphTrip
 
-프로토타입 제목  
-GraphTrip 서비스 프로토타입  
-: 사용자 행동 및 키워드 기반 개인화 여행 코스 추천 서비스
+사용자 행동 및 키워드 기반 개인화 여행 코스 추천 서비스
 
-팀명  
+## Team
+
 Graph Navigators
 
-프로토타입 설명  
-GraphTrip은 사용자의 장소 저장/좋아요 데이터를 기반으로 여행 장소와 여행 코스를 추천해주는 서비스입니다.
+---
 
-초기 서비스 단계에서는 특정 장소를 좋아한 사용자들이 함께 좋아요/저장한 다른 장소를 추천합니다.
+# 프로젝트 소개
 
-이후 사용자 데이터가 쌓이면, 리뷰 작성 시 선택한 키워드(감성적인, 조용한, 사진맛집, 가성비 등)를 활용해 사용자 취향에 맞는 장소와 여행 코스를 개인화 추천하는 방식으로 확장할 수 있습니다.
+GraphTrip은 사용자의 장소 저장/좋아요 데이터와 리뷰 키워드를 기반으로 여행 장소 및 여행 코스를 추천하는 서비스입니다.
 
-또한 추천된 장소들을 이동 거리 기준으로 최적화하여 하나의 여행 코스로 제공합니다.
+초기 단계에서는 사용자 행동 데이터를 기반으로 비슷한 취향의 사용자가 함께 저장한 장소를 추천합니다.
 
-Who  
-- 여행 계획을 쉽게 세우고 싶은 사용자
-- 자신의 취향에 맞는 장소를 추천받고 싶은 사용자
-- 인기순이 아닌 개인 맞춤형 여행 코스를 원하는 사용자
-- 처음 방문하는 지역에서 효율적인 동선을 추천받고 싶은 사용자
+이후에는 리뷰 키워드(감성적인, 조용한, 사진맛집 등)를 활용하여 사용자 취향 기반 개인화 추천으로 확장할 수 있습니다.
 
-When  
-- 여행을 계획할 때
-- 주말 나들이 코스를 찾을 때
-- 특정 장소 방문 후 비슷한 분위기의 장소를 찾고 싶을 때
-- 여행 일정과 이동 동선을 효율적으로 구성하고 싶을 때
+또한 추천 장소들을 이동 거리 기준으로 최적화하여 하나의 여행 코스로 제공합니다.
 
-Why  
-기존 여행 추천 서비스는 단순 인기순 추천이나 지역 기반 추천이 많아 개인 취향을 충분히 반영하지 못하는 한계가 있습니다.
+---
 
-본 서비스는 사용자 행동 데이터, 장소 간 연관성, 리뷰 키워드, 이동 거리 정보를 함께 활용하여 맞춤형 여행 추천을 제공하는 것을 목표로 합니다.
+# 주요 기능
 
-업무 분장
+* 사용자 행동 기반 장소 추천
+* 키워드 기반 장소 분류
+* Personalized 추천
+* 최적 여행 코스 생성
+* 추천 이유 출력
 
-1. 이수광  
-역할: 추천 시스템 개발  
-담당 기능: 사용자 행동 기반 장소 추천 기능 구현  
-자료구조: Graph, HashMap  
-알고리즘: Collaborative Filtering, Jaccard Similarity
+---
 
-2. 심찬기  
-역할: 키워드 분석 시스템 개발  
-담당 기능: 리뷰 키워드 저장 및 키워드 기반 장소 분류 기능 구현  
-자료구조: HashMap, Inverted Index  
-알고리즘: Topic-Sensitive Ranking
+# 기술 스택
 
-3. 최정현
-역할: 개인화 추천 시스템 개발  
-담당 기능: 사용자 취향 기반 Personalized 추천 기능 구현  
-자료구조: Weighted Graph, Dictionary  
-알고리즘: Personalized PageRank
+## Language
 
-4. 박종빈
-역할: 여행 코스 최적화 개발  
-담당 기능: 추천 장소들을 최적 이동 경로로 구성하는 기능 구현  
-자료구조: Priority Queue, Graph  
-알고리즘: Dijkstra Algorithm, Greedy Algorithm
+* Python
+
+## Library
+
+* pandas
+* networkx
+* streamlit
+
+## Data
+
+* CSV 기반 더미 데이터
+
+## Collaboration
+
+* GitHub
+
+---
+
+# 프로젝트 구조
+
+```text
+algorithm/
+├─ data/
+│  ├─ users.csv
+│  ├─ places.csv
+│  ├─ user_likes.csv
+│  └─ distances.csv
+│
+├─ src/
+│  ├─ recommendation.py
+│  ├─ keyword_recommend.py
+│  ├─ personalized.py
+│  ├─ route_optimizer.py
+│  └─ data_loader.py
+│
+├─ app.py
+├─ requirements.txt
+├─ .gitignore
+└─ README.md
+```
+
+---
+
+# 팀 역할
+
+## 1. 이수광
+
+* 사용자 행동 기반 추천 시스템 구현
+* Collaborative Filtering
+* Jaccard Similarity
+
+## 2. 심찬기
+
+* 키워드 분석 시스템 구현
+* Inverted Index
+* Topic-Sensitive Ranking
+
+## 3. 최정현
+
+* Personalized 추천 시스템 구현
+* Personalized PageRank
+
+## 4. 박종빈
+
+* 여행 코스 최적화 구현
+* Dijkstra Algorithm
+* Greedy Algorithm
+
+---
+
+# Git 협업 규칙
+
+## 브랜치 전략
+
+main 브랜치는 최종 통합 브랜치로 사용합니다.
+
+각 팀원은 기능별 브랜치를 생성하여 작업합니다.
+
+예시:
+
+```bash
+feature/recommendation
+feature/keyword
+feature/pagerank
+feature/route
+```
+
+---
+
+## 작업 순서
+
+### main 최신화
+
+```bash
+git checkout main
+git pull origin main
+```
+
+### 브랜치 생성
+
+```bash
+git checkout -b feature/브랜치이름
+```
+
+### 작업 후 업로드
+
+```bash
+git add .
+git commit -m "feat: 기능 설명"
+git push -u origin 브랜치이름
+```
+
+---
+
+# 개발 컨벤션
+
+## 함수 구조
+
+* 기능 단위로 함수 분리
+* 입력/출력 형식 통일
+* CSV 데이터 형식 유지
+
+## 추천 시스템 출력 형식 예시
+
+```python
+recommended_place_ids = [1, 2, 3]
+
+recommend_reason = {
+    1: "비슷한 취향의 사용자가 저장한 장소입니다."
+}
+```
+
+---
+
+# 실행 방법
+
+## 라이브러리 설치
+
+```bash
+pip install -r requirements.txt
+```
+
+## Streamlit 실행
+
+```bash
+streamlit run app.py
+```
+
+---
+
+# 최종 목표
+
+## 최소 목표
+
+* 추천 기능 정상 동작
+* 여행 코스 생성 기능 구현
+
+## 추가 목표
+
+* 키워드 기반 개인화 추천
+* 지도 API 연동
+* 로그인 기능
+* 인기 장소 랭킹
