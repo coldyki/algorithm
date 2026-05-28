@@ -87,13 +87,13 @@ algorithm/
 * Collaborative Filtering
 * Jaccard Similarity
 
-## 2. 심찬기
+## 2. 박종빈
 
 * 키워드 분석 시스템 구현
 * Inverted Index
 * Topic-Sensitive Ranking
 
-## 3. 박종빈
+## 3. 심찬기
 
 * Personalized 추천 시스템 구현
 * Personalized PageRank
