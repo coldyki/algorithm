@@ -17,7 +17,11 @@ import os
 # 경로 설정: 실행 위치에 무관하게 data/ 디렉토리를 찾는다
 # (FastAPI 서버 통합 시에도 경로가 깨지지 않음)
 # -------------------------------------------------------
-_BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+_BASE_DIR = os.path.dirname(
+    os.path.dirname(
+        os.path.dirname(os.path.abspath(__file__))
+    )
+)
 _DEFAULT_PLACES_PATH = os.path.join(_BASE_DIR, "data", "places.json")
 
 
