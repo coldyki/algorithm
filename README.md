@@ -114,10 +114,9 @@ main 브랜치는 최종 통합 브랜치로 사용합니다.
 
 각 팀원은 기능별 브랜치를 생성하여 작업합니다.
 
-예시:
 
 ```bash
-feature/recommendation
+feature/cf
 feature/keyword
 feature/pagerank
 feature/route
