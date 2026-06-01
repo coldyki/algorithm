@@ -4,8 +4,8 @@ import math
 import random
 
 # JSON 데이터 파일 경로 정의
-PLACES_JSON_PATH = "places.json"
-USERS_JSON_PATH = "users.json"
+PLACES_JSON_PATH = "data/places.json"
+USERS_JSON_PATH = "data/users.json"
 
 # JSON에서 데이터 읽어오기
 def load_places() -> list[dict]:
