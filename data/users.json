@@ -1,0 +1,22 @@
+[
+  {"id": 1, "name": "김민준", "preferred_keywords": ["가족여행", "힐링", "산책"]},
+  {"id": 2, "name": "이서연", "preferred_keywords": ["감성적인", "데이트", "카페투어"]},
+  {"id": 3, "name": "박도현", "preferred_keywords": ["고즈넉한", "전통적인", "역사탐방"]},
+  {"id": 4, "name": "최예은", "preferred_keywords": ["드라이브", "야경", "로맨틱한"]},
+  {"id": 5, "name": "정재현", "preferred_keywords": ["먹방", "친구여행", "사진맛집"]},
+  {"id": 6, "name": "강지민", "preferred_keywords": ["체험형", "가족여행", "국립경주박물관"]},
+  {"id": 7, "name": "조우진", "preferred_keywords": ["조용한", "산책", "힐링"]},
+  {"id": 8, "name": "윤아름", "preferred_keywords": ["데이트", "커플여행", "보문호"]},
+  {"id": 9, "name": "장원우", "preferred_keywords": ["역사탐방", "문화유산", "석굴암"]},
+  {"id": 10, "name": "신지후", "preferred_keywords": ["드라이브", "보문호", "야경"]},
+  {"id": 11, "name": "임수현", "preferred_keywords": ["감성적인", "사진맛집", "친구여행"]},
+  {"id": 12, "name": "한지호", "preferred_keywords": ["가족여행", "체험형", "전통적인"]},
+  {"id": 13, "name": "오지아", "preferred_keywords": ["커플여행", "로맨틱한", "데이트"]},
+  {"id": 14, "name": "서태웅", "preferred_keywords": ["조용한", "고즈넉한", "산책"]},
+  {"id": 15, "name": "황민희", "preferred_keywords": ["먹방", "카페투어", "감성적인"]},
+  {"id": 16, "name": "양준혁", "preferred_keywords": ["문화유산", "국립경주박물관", "역사탐방"]},
+  {"id": 17, "name": "백하은", "preferred_keywords": ["힐링", "조용한", "전통적인"]},
+  {"id": 18, "name": "송민재", "preferred_keywords": ["사진맛집", "야경", "월정교"]},
+  {"id": 19, "name": "권유리", "preferred_keywords": ["가족여행", "보문호", "산책"]},
+  {"id": 20, "name": "유지한", "preferred_keywords": ["데이트", "로맨틱한", "카페투어"]}
+]
