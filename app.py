@@ -402,6 +402,12 @@ def page_personal():
                 if st.button(lbl, key=f"ps_l_{i}_{pid}", use_container_width=True):
                     toggle_like(pid); st.rerun()
 
+    st.markdown("---")
+    if st.button("🗺️ 이 장소들로 경로 추천 받기", use_container_width=True, type="primary"):
+        st.session_state["route_from_pers"] = [r["place_id"] for r in combined]
+        st.session_state.page = "경로 추천"
+        st.rerun()
+
 
 # ─── 경로 추천 ────────────────────────────────────────────────
 def page_route():
@@ -416,9 +422,12 @@ def page_route():
     with col2:
         method = st.selectbox("알고리즘", ["dijkstra", "floyd"])
 
-    # 경유지: 개인화 추천 결과 or 좋아요한 장소
+    # 경유지: 개인화 추천에서 넘어온 경우 그 장소 우선, 아니면 좋아요한 장소
     liked = st.session_state.liked
-    default_stops = [p for p in liked if p != start_id][:4]
+    pers_stops = st.session_state.pop("route_from_pers", None)
+    if pers_stops is not None:
+        st.session_state["_default_stops"] = [p for p in pers_stops if p != start_id]
+    default_stops = st.session_state.get("_default_stops") or [p for p in liked if p != start_id][:4]
 
     all_names = [PLACES[p]["name"] for p in place_ids]
     selected_stops_names = st.multiselect(
