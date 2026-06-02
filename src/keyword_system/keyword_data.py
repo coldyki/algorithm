@@ -77,18 +77,18 @@ def get_place_dict() -> dict[int, dict]:
 # 결과를 반영하여 완성한다.
 # 역할3(place_graph.py)은 이 함수를 호출하여 키워드 가중치를 그래프에 반영한다.
 # -------------------------------------------------------
-def get_keyword_weights() -> dict[str, float]:
-    """
-    키워드별 중요도 가중치를 반환한다.
+# def get_keyword_weights() -> dict[str, float]:
+#     """
+#     키워드별 중요도 가중치를 반환한다.
 
-    역할2가 Inverted Index / Topic-Sensitive Ranking으로 계산한
-    키워드 중요도를 여기서 반환한다.
-    역할2 구현 전까지는 모든 키워드의 가중치를 1.0(동일)으로 처리한다.
+#     역할2가 Inverted Index / Topic-Sensitive Ranking으로 계산한
+#     키워드 중요도를 여기서 반환한다.
+#     역할2 구현 전까지는 모든 키워드의 가중치를 1.0(동일)으로 처리한다.
 
-    Returns:
-        예) {"야경": 1.8, "힐링": 1.5, "감성적인": 1.3, "사진맛집": 1.2, ...}
-        (역할2 구현 전 기본값: 빈 dict → place_graph.py에서 기본 Jaccard 적용)
-    """
-    # TODO: 역할2 팀원이 실제 가중치로 교체한다.
-    # 현재는 빈 dict를 반환 → place_graph.py가 일반 Jaccard로 폴백(fallback)한다.
-    return {}
+#     Returns:
+#         예) {"야경": 1.8, "힐링": 1.5, "감성적인": 1.3, "사진맛집": 1.2, ...}
+#         (역할2 구현 전 기본값: 빈 dict → place_graph.py에서 기본 Jaccard 적용)
+#     """
+#     # TODO: 역할2 팀원이 실제 가중치로 교체한다.
+#     # 현재는 빈 dict를 반환 → place_graph.py가 일반 Jaccard로 폴백(fallback)한다.
+#     return {}

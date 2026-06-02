@@ -14,9 +14,10 @@ personalization/place_graph.py
 
 from keyword_system.keyword_data import (
     get_place_keywords,
-    get_keyword_weights,
 )
-
+from keyword_system.keyword_system import (
+    get_keyword_weights
+)
 
 # -------------------------------------------------------
 # 유사도 계산
