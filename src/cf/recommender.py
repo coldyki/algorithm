@@ -1,24 +1,20 @@
+import heapq
+
 from src.cf.data_loader import load_user_likes
 from src.cf.similarity import jaccard_similarity
 
 
 def find_similar_users(target_user_id, similarity_threshold=0.3):
     """
+    [알고리즘] Jaccard Similarity
+    [자료구조] Set, Dictionary
+
     target_user_id와 취향이 비슷한 사용자를 찾는다.
 
-    처리 과정:
-    1. user_likes.csv에서 사용자별 좋아요 장소 데이터를 읽는다.
-    2. target_user_id 사용자의 좋아요 장소와 다른 사용자들의 좋아요 장소를 비교한다.
-    3. Jaccard Similarity를 계산한다.
-    4. similarity_threshold 이상인 사용자만 유사 사용자로 사용한다.
-    5. 유사도 높은 순서로 정렬한다.
+    user_likes.csv에서 사용자별 좋아요 장소 데이터를 읽고,
+    각 사용자의 좋아요 장소 집합을 비교하여 Jaccard Similarity를 계산한다.
 
-    Args:
-        target_user_id: 추천을 받을 사용자 ID
-        similarity_threshold: 유사 사용자로 인정할 최소 유사도
-
-    Returns:
-        [(user_id, similarity), ...]
+    similarity_threshold 이상인 사용자만 유사 사용자로 사용한다.
     """
 
     user_likes = load_user_likes()
@@ -43,30 +39,21 @@ def find_similar_users(target_user_id, similarity_threshold=0.3):
     return similarities
 
 
-def recommend_places_cf(target_user_id, top_k=5, similarity_threshold=0.3):
+def _calculate_cf_scores(target_user_id, similarity_threshold=0.3):
     """
-    Collaborative Filtering 기반으로 추천 장소 ID 리스트를 반환한다.
+    [알고리즘] Collaborative Filtering
+    [자료구조] Dictionary / HashMap
 
-    추천 방식:
-    1. target_user_id와 유사한 사용자들을 찾는다.
-    2. 유사 사용자들이 좋아요한 장소 중 target_user_id가 아직 좋아요하지 않은 장소를 찾는다.
-    3. 각 장소에 대해 유사도 점수를 누적한다.
-    4. 점수가 높은 장소 순서대로 top_k개를 추천한다.
+    CF 추천 후보별 점수를 계산한다.
 
-    점수 계산:
-        place_score += similar_user_similarity
+    점수 계산 방식:
+    - 유사 사용자가 좋아한 장소 중 현재 사용자가 아직 좋아하지 않은 장소를 후보로 선정
+    - 후보 장소의 점수에 유사 사용자의 Jaccard Similarity 값을 누적
 
-    예:
-        User2와 유사도 0.5이고 User2가 장소 10을 좋아함
-        → 장소 10 점수 += 0.5
-
-        User3와 유사도 0.3이고 User3도 장소 10을 좋아함
-        → 장소 10 점수 += 0.3
-
-        최종 장소 10 점수 = 0.8
-
-    Returns:
-        [place_id, place_id, ...]
+    반환:
+        {
+            place_id: score
+        }
     """
 
     user_likes = load_user_likes()
@@ -86,67 +73,76 @@ def recommend_places_cf(target_user_id, top_k=5, similarity_threshold=0.3):
     for other_user, similarity in similar_users:
         other_places = user_likes[other_user]
 
-        # 유사 사용자가 좋아했지만, 현재 사용자는 아직 좋아하지 않은 장소만 추천 후보로 사용
+        # Set 차집합:
+        # 유사 사용자가 좋아했지만 현재 사용자는 아직 좋아하지 않은 장소만 추천 후보로 사용
         candidate_places = other_places - target_places
 
         for place_id in candidate_places:
             place_scores[place_id] = place_scores.get(place_id, 0) + similarity
 
-    sorted_places = sorted(
+    return place_scores
+
+
+def _get_top_k_places_by_heap(place_scores, top_k=5):
+    """
+    [자료구조] Heap / Priority Queue
+
+    추천 후보 장소 중 점수가 높은 상위 top_k개 장소를 추출한다.
+
+    Python의 heapq는 기본적으로 min heap이지만,
+    heapq.nlargest()를 사용하면 내부적으로 heap 기반으로 상위 K개를 선택할 수 있다.
+    """
+
+    top_items = heapq.nlargest(
+        top_k,
         place_scores.items(),
-        key=lambda x: x[1],
-        reverse=True
+        key=lambda item: item[1]
     )
 
-    return [place_id for place_id, score in sorted_places[:top_k]]
+    return top_items
+
+
+def recommend_places_cf(target_user_id, top_k=5, similarity_threshold=0.3):
+    """
+    [알고리즘] Collaborative Filtering
+    [자료구조] Dictionary, Heap
+
+    Collaborative Filtering 기반으로 추천 장소 ID 리스트를 반환한다.
+
+    반환 예시:
+        [6, 7, 3, 9, 4]
+    """
+
+    place_scores = _calculate_cf_scores(
+        target_user_id,
+        similarity_threshold=similarity_threshold
+    )
+
+    top_items = _get_top_k_places_by_heap(place_scores, top_k=top_k)
+
+    return [place_id for place_id, score in top_items]
 
 
 def recommend_places_cf_with_scores(target_user_id, top_k=5, similarity_threshold=0.3):
     """
-    Collaborative Filtering 추천 결과를 점수와 추천 이유까지 포함해 반환한다.
+    [알고리즘] Collaborative Filtering
+    [자료구조] Dictionary, Heap
 
-    이 함수는 발표, 디버깅, Streamlit 화면 출력용으로 사용한다.
+    추천 장소 ID, 추천 점수, 추천 이유를 함께 반환한다.
 
-    Returns:
-        [
-            {
-                "place_id": 6,
-                "score": 1.2333,
-                "reason": "비슷한 취향의 사용자가 좋아요/저장한 장소입니다."
-            }
-        ]
+    발표, 디버깅, Streamlit 화면 출력용으로 사용한다.
     """
 
-    user_likes = load_user_likes()
-
-    if target_user_id not in user_likes:
-        raise ValueError(f"사용자 ID {target_user_id}가 user_likes.csv에 없습니다.")
-
-    target_places = user_likes[target_user_id]
-
-    similar_users = find_similar_users(
+    place_scores = _calculate_cf_scores(
         target_user_id,
         similarity_threshold=similarity_threshold
     )
 
-    place_scores = {}
-
-    for other_user, similarity in similar_users:
-        other_places = user_likes[other_user]
-        candidate_places = other_places - target_places
-
-        for place_id in candidate_places:
-            place_scores[place_id] = place_scores.get(place_id, 0) + similarity
-
-    sorted_places = sorted(
-        place_scores.items(),
-        key=lambda x: x[1],
-        reverse=True
-    )
+    top_items = _get_top_k_places_by_heap(place_scores, top_k=top_k)
 
     result = []
 
-    for place_id, score in sorted_places[:top_k]:
+    for place_id, score in top_items:
         result.append({
             "place_id": place_id,
             "score": round(score, 4),
