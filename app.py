@@ -16,14 +16,14 @@ for p in [ROOT, SRC]:
 from src.cf.recommender import recommend_places_cf_with_scores
 from src.cf.data_loader import load_user_likes
 # keyword_system: SRC 기준 import
-from keyword_system.keyword_data import get_place_dict, get_place_keywords
-from keyword_system.keyword_system import get_keyword_weights
+from src.keyword_system.keyword_data import get_place_dict, get_place_keywords
+from src.keyword_system.keyword_system import get_keyword_weights
 # route: SRC 기준 import
-from route.route_optimizer import optimize_travel_route
+from src.route.route_optimizer import optimize_travel_route
 
 # personalization: "from personalization.xxx" 형식
 try:
-    from personalization.recommender import recommend_places as rwr_recommend
+    from src.personalization.recommender import recommend_places as rwr_recommend
     PERS_AVAILABLE = True
 except Exception as _e:
     PERS_AVAILABLE = False
@@ -140,21 +140,75 @@ def page_home():
 
     st.markdown("---")
     st.markdown("### 🌟 전체 장소")
-    cols = st.columns(2)
-    for i, (pid, info) in enumerate(PLACES.items()):
-        with cols[i % 2]:
-            with st.container(border=True):
-                liked = "❤️" if pid in st.session_state.liked else "🤍"
-                st.markdown(f"**{liked} {info['name']}**")
-                st.caption(" ".join(f"#{kw}" for kw in info["keywords"][:3]))
-                bc1, bc2 = st.columns(2)
-                with bc1:
-                    if st.button("상세", key=f"h_d_{pid}", use_container_width=True):
-                        go_place(pid); st.rerun()
-                with bc2:
-                    lbl = "취소" if pid in st.session_state.liked else "좋아요"
-                    if st.button(lbl, key=f"h_l_{pid}", use_container_width=True):
-                        toggle_like(pid); st.rerun()
+
+    # ── K-Means 클러스터링 로드 ──────────────────────────────
+    try:
+        from keyword_system.keyword_system import (
+            get_place_cluster_mapping, load_places as _load_places,
+            _prepare_keyword_matrix, calculate_tfidf, kmeans_clustering
+        )
+        cluster_map = get_place_cluster_mapping()  # {place_id: cluster_idx}
+
+        # 클러스터별 대표 키워드 계산 (centroid 상위 3개)
+        _places_raw = _load_places()
+        _all_kws = sorted({kw for p in _places_raw for kw in p["keywords"]})
+        _kw_to_idx = {kw: i for i, kw in enumerate(_all_kws)}
+        _vectors = calculate_tfidf(_places_raw, _kw_to_idx, len(_all_kws))
+        _clusters, _centroids = kmeans_clustering(_vectors, k=3)
+
+        CLUSTER_ICONS  = {0: "🌙", 1: "🏡", 2: "🏛️"}
+        cluster_labels = {}
+        for cidx, centroid in enumerate(_centroids):
+            top = sorted(enumerate(centroid), key=lambda x: -x[1])[:3]
+            top_kws = [_all_kws[i] for i, v in top if v > 0]
+            cluster_labels[cidx] = top_kws
+
+        # 클러스터별 장소 그룹
+        from collections import defaultdict
+        groups = defaultdict(list)
+        for pid in PLACES:
+            groups[cluster_map.get(pid, 0)].append(pid)
+
+        for cidx in sorted(groups.keys()):
+            icon  = CLUSTER_ICONS.get(cidx, "📍")
+            label = " · ".join(cluster_labels.get(cidx, []))
+            st.markdown(f"#### {icon} 클러스터 {cidx + 1} — {label}")
+            cols = st.columns(2)
+            for i, pid in enumerate(groups[cidx]):
+                info = PLACES[pid]
+                with cols[i % 2]:
+                    with st.container(border=True):
+                        lk = "❤️" if pid in st.session_state.liked else "🤍"
+                        st.markdown(f"**{lk} {info['name']}**")
+                        st.caption(" ".join(f"#{kw}" for kw in info["keywords"][:3]))
+                        bc1, bc2 = st.columns(2)
+                        with bc1:
+                            if st.button("상세", key=f"h_d_{pid}", use_container_width=True):
+                                go_place(pid); st.rerun()
+                        with bc2:
+                            lbl = "취소" if pid in st.session_state.liked else "좋아요"
+                            if st.button(lbl, key=f"h_l_{pid}", use_container_width=True):
+                                toggle_like(pid); st.rerun()
+            st.markdown("")
+
+    except Exception as e:
+        # 클러스터링 실패 시 기존 목록 형태로 폴백
+        st.caption(f"클러스터링 오류: {e}")
+        cols = st.columns(2)
+        for i, (pid, info) in enumerate(PLACES.items()):
+            with cols[i % 2]:
+                with st.container(border=True):
+                    lk = "❤️" if pid in st.session_state.liked else "🤍"
+                    st.markdown(f"**{lk} {info['name']}**")
+                    st.caption(" ".join(f"#{kw}" for kw in info["keywords"][:3]))
+                    bc1, bc2 = st.columns(2)
+                    with bc1:
+                        if st.button("상세", key=f"h_d_{pid}", use_container_width=True):
+                            go_place(pid); st.rerun()
+                    with bc2:
+                        lbl = "취소" if pid in st.session_state.liked else "좋아요"
+                        if st.button(lbl, key=f"h_l_{pid}", use_container_width=True):
+                            toggle_like(pid); st.rerun()
 
 
 # ─── 장소 검색 ────────────────────────────────────────────────
